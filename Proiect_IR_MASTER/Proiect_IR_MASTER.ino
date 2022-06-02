@@ -95,7 +95,8 @@ void setup(){
 }
 void Bootload(){
   String response = "";
-  
+
+  //print bootload init
   tft.setTextColor(ST7735_MAGENTA);
   tft.setCursor(10,10);
   tft.print("Starting bootload");
@@ -127,7 +128,8 @@ void Bootload(){
   tft.print(".");
   delay(100);
   tft.print("OK");
-  
+
+  //init DHT11
   delay(200);
   tft.setCursor(5,40);
   tft.print("Loading DHT11");
@@ -144,7 +146,8 @@ void Bootload(){
   delay(100);
   tft.print("OK");
   delay(200);
-  
+
+  //init SLAVE Arduino
   tft.setCursor(5,55);
   tft.print("Loading Arduino");
   tft.print(".");
@@ -155,7 +158,8 @@ void Bootload(){
   delay(250);
   tft.print("OK");
   delay(200);
-  
+
+  //init BMP280
   tft.setCursor(5,70);
   tft.print("Loading BMP280");
   tft.print(".");
@@ -168,7 +172,8 @@ void Bootload(){
   delay(250);
   tft.print("OK");
   delay(200);
-  
+
+  //init Servo
   tft.setCursor(5,85);
   tft.print("Loading Servo");
   tft.print(".");
@@ -183,7 +188,8 @@ void Bootload(){
   delay(100);
   tft.print("OK");
   delay(200);
-  
+
+  //init LDR
   tft.setCursor(5,100);
   tft.print("Loading LDR");
   tft.print(".");
@@ -204,9 +210,9 @@ void Bootload(){
   delay(200);
 }
 
-void updateDegree(){
+void updateDegree(){//function to update current degree if servo is on manual mode
   if(!isManual){
-    return ;
+    return ;//exit from function if it is in auto mode
   }
   tft.setTextColor(ST7735_MAGENTA);
   tft.fillRect(10,70,160,10,ST7735_BLACK);
@@ -229,7 +235,7 @@ void servoIncrease(){ // send signal and degree to turn Servo to the right
   Wire.beginTransmission(SLAVE_ADDR);
   Wire.write(servoDegree);
   Wire.endTransmission();
-  updateDegree();
+  updateDegree();//print current degree
 }
 
 void servoDecrease(){ // send signal and degree to turn Servo to the left
@@ -240,18 +246,18 @@ void servoDecrease(){ // send signal and degree to turn Servo to the left
   Wire.beginTransmission(SLAVE_ADDR);
   Wire.write(servoDegree);
   Wire.endTransmission();
-  updateDegree();
+  updateDegree();//print current degree
 }
 
-void updateOverride(){
+void updateOverride(){//function to update whether servo is in auto or manual mode
   tft.fillRect(20,60,160,30,ST7735_BLACK);
-  if(isManual){ 
+  if(isManual){ //if it is in manual
     tft.setTextColor(ST7735_MAGENTA); 
     tft.setCursor(30,60);
     tft.println("MODE: MANUAL");
-    updateDegree();
+    updateDegree();//print current degree
   }
-  else{
+  else{// if it is in auto
     tft.setTextColor(ST7735_MAGENTA); 
     tft.setCursor(35,60);
     tft.println("MODE: AUTO");
@@ -282,7 +288,7 @@ void screenHeader(){
   tft.setCursor(10,10);
   tft.drawFastHLine(0,20,127, ST7735_MAGENTA);
   //print current time
-  updateTime();
+  updateTime();//print current time
 }
 
 void backButton(){
@@ -302,7 +308,7 @@ void tempScreen(){//temperature screen
   tft.fillScreen(ST7735_BLACK);
   delay(500);
   
-  screenHeader();
+  screenHeader();//print header
 
   Wire.beginTransmission(SLAVE_ADDR);
   Wire.write(TEMPERATURE);
@@ -327,7 +333,7 @@ void tempScreen(){//temperature screen
     tft.print("NaN Celsius");
   }
 
-  backButton();
+  backButton();//print back button
 }
 
 void humidScreen(){//humidity screen
@@ -339,7 +345,7 @@ void humidScreen(){//humidity screen
   tft.fillScreen(ST7735_BLACK);
   delay(500);
     
-  screenHeader();
+  screenHeader();//print header
   
   sensors_event_t humidity_event;
   dht.humidity().getEvent(&humidity_event);
@@ -352,7 +358,7 @@ void humidScreen(){//humidity screen
   tft.print(String(humidity_event.relative_humidity));
   tft.print(" %");
 
-  backButton();
+  backButton();//print back button
 }
 
 void presScreen(){//pressure screen
@@ -364,7 +370,7 @@ void presScreen(){//pressure screen
   tft.fillScreen(ST7735_BLACK);
   delay(500);
     
-  screenHeader();
+  screenHeader();//print header
 
   Wire.beginTransmission(SLAVE_ADDR);
   Wire.write(PRESSURE);
@@ -389,7 +395,7 @@ void presScreen(){//pressure screen
     tft.print("NaN hPa");
   }
 
-  backButton();
+  backButton();//print back button
 }
 
 void overScreen(){//manual override screen
@@ -401,11 +407,11 @@ void overScreen(){//manual override screen
   tft.fillScreen(ST7735_BLACK);
   delay(500);
     
-  screenHeader();
+  screenHeader();//print header
   
-  updateOverride();
+  updateOverride();//print current servo mode
   
-  backButton();
+  backButton();//print back button
 }
 
 
@@ -427,7 +433,7 @@ void mainScreen(){
   tft.fillScreen(ST7735_BLACK);
   delay(500);
   
-  screenHeader();
+  screenHeader();//print screen header
   
   //body
   if(selectedScreen == TEMPERATURE){
@@ -606,7 +612,7 @@ void loop(){
 //          break ;
           case 24:
           Serial.println("2");
-          if(currentScreen == -1){
+          if(currentScreen == -1){//if it is main menu, scroll up 1 option
             --selectedScreen;
           }else if(currentScreen == OVERRIDE){ //if screen is in override, switch override mode and send to slave
             if(isManual == 0){
@@ -620,7 +626,7 @@ void loop(){
               Wire.write(MANUAL_FALSE);
               Wire.endTransmission();
             }
-            updateOverride();
+            updateOverride();//update screen
           }
           break ;
 //          case 94:
@@ -628,7 +634,7 @@ void loop(){
 //          break ;
           case 8:
           Serial.println("4");
-          if(currentScreen == OVERRIDE){
+          if(currentScreen == OVERRIDE){//if it is in manual override, decrease Servo degree
             servoDecrease();
           }
           break ;
@@ -646,7 +652,7 @@ void loop(){
           break ;
           case 90:
           Serial.println("6");
-          if(currentScreen == OVERRIDE){
+          if(currentScreen == OVERRIDE){{//if it is in manual override, increase Servo degree
             servoIncrease();
           }
           break ;
@@ -655,7 +661,7 @@ void loop(){
 //          break ;
           case 82:
           Serial.println("8");
-          if(currentScreen == -1){
+          if(currentScreen == -1){//if it is main menu, scroll down 1 option
             ++selectedScreen;
           }
           break ;

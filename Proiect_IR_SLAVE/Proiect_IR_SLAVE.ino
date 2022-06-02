@@ -66,7 +66,7 @@ char response[7];
 uint8_t degree = 0;
 
 uint8_t isManual = 0;
-uint16_t dayValue = 400;
+uint16_t dayValue = 512;
 
 // Global variables and defines
 #define THRESHOLD_ldr_1   100
@@ -147,10 +147,6 @@ void setup() {
   // Setup Serial which is useful for debugging
     // Use the Serial Monitor to view printed messages
     Serial.println("start");
-    
-    ldr_1AverageLight = ldr_1.readAverage();
-    ldr_2AverageLight = ldr_2.readAverage();
-    ldr_3AverageLight = ldr_3.readAverage();
 
 }
 
@@ -158,9 +154,9 @@ void setup() {
 void recieveEvent(){
   while(Wire.available() > 0){
     message = Wire.read();
-    if(message == 4){
+    if(message == 4){ //if message is mode auto
       isManual = 0;
-    }else if(message == 5){
+    }else if(message == 5){ //if message is mode manual
       isManual = 1;
     }
     if((message % 10) == 0){// sets the servo position according to the scaled value, if corresponding signal has been sent
@@ -171,6 +167,7 @@ void recieveEvent(){
 }
 
 void sendTemp(){
+  //function to collect temperature data and insert it into response variable
   sensors_event_t temp_event;
   bmp_temp->getEvent(&temp_event);
   delay(100);
@@ -196,6 +193,7 @@ void sendHumid(){
 */
 
 void sendPres(){
+  //function to collect pressure data and insert it into response variable
   sensors_event_t pressure_event;
   bmp_pressure->getEvent(&pressure_event);
   delay(100);
@@ -266,35 +264,46 @@ void loop() {
     Serial.println(F("%"));
   }
 */
-  Serial.println(message);
-  Serial.println(response);
+  Serial.print(F("Message received: "));Serial.println(message);
+  Serial.print(F("Message sent: "));Serial.println(response);
     if(!isManual){ 
+      //if it is mode auto
+          //read light sensor input
+          int ldr_east = ldr_1.read();//east
+          int ldr_south = ldr_2.read();//south
+          int ldr_west = ldr_3.read();//west
       
-          int ldr_1Sample = ldr_1.read();
-          int ldr_1Diff = abs(ldr_1AverageLight - ldr_1Sample);
-          Serial.print(F("Light Diff1: ")); Serial.println(ldr_1Diff);
-          int ldr_2Sample = ldr_2.read();
-          int ldr_2Diff = abs(ldr_2AverageLight - ldr_2Sample);
-          Serial.print(F("Light Diff2: ")); Serial.println(ldr_2Diff);
-          int ldr_3Sample = ldr_3.read();
-          int ldr_3Diff = abs(ldr_3AverageLight - ldr_3Sample);
-          Serial.print(F("Light Diff3: ")); Serial.println(ldr_3Diff);
-      
-           
-          if(ldr_1Diff > dayValue && ldr_2Diff < dayValue) {
-            myservo.write(0);
-          }else if(ldr_1Diff < dayValue && ldr_2Diff > dayValue && ldr_3Diff < dayValue){
-            myservo.write(90);
-          }else if(ldr_2Diff < dayValue && ldr_3Diff > dayValue){
-            myservo.write(180);
-          } else if(ldr_1Diff > dayValue && ldr_2Diff > dayValue && ldr_3Diff < dayValue) {
-            myservo.write(45);
-          } else if(ldr_1Diff < dayValue && ldr_2Diff > dayValue && ldr_3Diff > dayValue) {
-            myservo.write(135);
+          //verify if difference between 2 sensors is a small one
+          int ldr_se = abs(ldr_south - ldr_east);
+          int ldr_sw = abs(ldr_west - ldr_south);
+          Serial.print(F("Light east: "));Serial.println(ldr_east);
+          Serial.print(F("Light south: "));Serial.println(ldr_south);
+          Serial.print(F("Light west: "));Serial.println(ldr_west);
+          Serial.print(F("Light Diff12: ")); Serial.println(ldr_se);
+          Serial.print(F("Light Diff23: ")); Serial.println(ldr_sw);
+          
+          //servo is off by ~5-15 degree, normal values are 15,45,90,135,165
+          if(ldr_se < 200 && ldr_south > ldr_west && ldr_east > ldr_west) {// if light is between south and eest
+            myservo.write(125);
+            Serial.println("Light direction: southeast");
+          } else if(ldr_sw < 200 && ldr_south > ldr_east && ldr_west > ldr_east) {// if light is between south and west
+            myservo.write(50);
+            Serial.println("Light direction: southwest");
+          } else if(ldr_east > ldr_south && ldr_east > ldr_west){// if light is east
+            myservo.write(155);
+            Serial.println("Light direction: east");
+          } else if(ldr_south > ldr_west && ldr_south > ldr_east){// if light is south
+            myservo.write(85);
+            Serial.println("Light direction: south");
+          } else if(ldr_west > ldr_east && ldr_west > ldr_south){// if light is west
+            myservo.write(30);
+            Serial.println("Light direction: west");
           } else {
             myservo.write(90);
+            Serial.println("Light direction: default");
           }
     }else{
+      //if it is mode manual
           Serial.print("Mode Manual: ");
           Serial.println(degree);
           myservo.write(degree);
