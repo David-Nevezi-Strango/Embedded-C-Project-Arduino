@@ -158,6 +158,7 @@ void recieveEvent(){
       isManual = 0;
     }else if(message == 5){ //if message is mode manual
       isManual = 1;
+      degree = 0;
     }
     if((message % 10) == 0){// sets the servo position according to the scaled value, if corresponding signal has been sent
       degree = message;
