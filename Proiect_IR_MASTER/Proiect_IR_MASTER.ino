@@ -652,7 +652,7 @@ void loop(){
           break ;
           case 90:
           Serial.println("6");
-          if(currentScreen == OVERRIDE){{//if it is in manual override, increase Servo degree
+          if(currentScreen == OVERRIDE){//if it is in manual override, increase Servo degree
             servoIncrease();
           }
           break ;
