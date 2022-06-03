@@ -65,6 +65,8 @@ uint8_t isManual = 0;
 uint8_t lastMinute = 0;//memorize last minute.
                              //Useful to not refresh screen every second
 uint8_t servoDegree = 0; // int to memorize the servo degree
+
+uint32_t delayMS;//for DHT sensor reading
 void setup(){
   //init I2C Communication 
   Wire.begin();
@@ -89,7 +91,7 @@ void setup(){
 
   // Set the current date, and time in the following format:
   // seconds, minutes, hours, day of the week, day of the month, month, year
-  //myRTC.setDS1302Time(00, 16, 14, 6, 21, 5, 2022);
+  myRTC.setDS1302Time(00, 22, 12, 5, 3, 6, 2022);
   Bootload();
   
 }
@@ -128,9 +130,10 @@ void Bootload(){
   tft.print(".");
   delay(100);
   tft.print("OK");
-
-  //init DHT11
   delay(200);
+  
+  //init DHT11
+  dht.begin();
   tft.setCursor(5,40);
   tft.print("Loading DHT11");
   delay(100);
@@ -146,7 +149,22 @@ void Bootload(){
   delay(100);
   tft.print("OK");
   delay(200);
+  
+  //debug
+  sensor_t sensor;
+  dht.humidity().getSensor(&sensor);
+//Serial.println(F("Humidity Sensor"));
+//Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
+//Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
+//Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
+//Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("%"));
+//Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("%"));
+//Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("%"));
+//Serial.println(F("------------------------------------"));
+  // Set delay between sensor readings based on sensor details.
+  delayMS = sensor.min_delay / 1000;
 
+  
   //init SLAVE Arduino
   tft.setCursor(5,55);
   tft.print("Loading Arduino");
@@ -359,6 +377,7 @@ void humidScreen(){//humidity screen
   tft.print(" %");
 
   backButton();//print back button
+  delay(delayMS);
 }
 
 void presScreen(){//pressure screen
@@ -671,6 +690,6 @@ void loop(){
         }
         delay(500);
         IrReceiver.resume(); 
-  } 
-
+    } 
+  
 }
